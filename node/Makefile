@@ -1,0 +1,160 @@
+#Copyright (c) 2009  Eucalyptus Systems, Inc.	
+#
+#This program is free software: you can redistribute it and/or modify
+#it under the terms of the GNU General Public License as published by 
+#the Free Software Foundation, only version 3 of the License.  
+# 
+#This file is distributed in the hope that it will be useful, but WITHOUT
+#ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+#FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+#for more details.  
+#
+#You should have received a copy of the GNU General Public License along
+#with this program.  If not, see <http://www.gnu.org/licenses/>.
+# 
+#Please contact Eucalyptus Systems, Inc., 130 Castilian
+#Dr., Goleta, CA 93101 USA or visit <http://www.eucalyptus.com/licenses/> 
+#if you need additional information or have any questions.
+#
+#This file may incorporate work covered under the following copyright and
+#permission notice:
+#
+#  Software License Agreement (BSD License)
+#
+#  Copyright (c) 2008, Regents of the University of California
+#  
+#
+#  Redistribution and use of this software in source and binary forms, with
+#  or without modification, are permitted provided that the following
+#  conditions are met:
+#
+#    Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
+#
+#    Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+#  IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+#  TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+#  PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+#  OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+#  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+#  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+#  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+#  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+#  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+#  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. USERS OF
+#  THIS SOFTWARE ACKNOWLEDGE THE POSSIBLE PRESENCE OF OTHER OPEN SOURCE
+#  LICENSED MATERIAL, COPYRIGHTED MATERIAL OR PATENTED MATERIAL IN THIS
+#  SOFTWARE, AND IF ANY SUCH MATERIAL IS DISCOVERED THE PARTY DISCOVERING
+#  IT MAY INFORM DR. RICH WOLSKI AT THE UNIVERSITY OF CALIFORNIA, SANTA
+#  BARBARA WHO WILL THEN ASCERTAIN THE MOST APPROPRIATE REMEDY, WHICH IN
+#  THE REGENTS’ DISCRETION MAY INCLUDE, WITHOUT LIMITATION, REPLACEMENT
+#  OF THE CODE SO IDENTIFIED, LICENSING OF THE CODE SO IDENTIFIED, OR
+#  WITHDRAWAL OF THE CODE CAPABILITY TO THE EXTENT NEEDED TO COMPLY WITH
+#  ANY SUCH LICENSES OR RIGHTS.
+#
+#
+
+include ../Makedefs
+
+WSDLPATH=../wsdl/
+CCWSDLNAME=eucalyptus_cc.wsdl
+CCWSDL=$(WSDLPATH)/$(CCWSDLNAME)
+NCWSDLNAME=eucalyptus_nc.wsdl
+NCWSDL=$(WSDLPATH)/$(NCWSDLNAME)
+SERVICE_SO=libEucalyptusNC.so
+SERVICE_NAME=EucalyptusNC
+CLIENT=NCclient
+#WSDL2C=$(AXIS2C_HOME)/bin/tools/wsdl2c/WSDL2C.sh
+NC_LIBS 		= $(LIBS) -lvirt -lcurl
+NC_HANDLERS=handlers_xen.o handlers_kvm.o
+
+all: server client clientlib test_nc test
+
+build: all
+
+generated/stubs: $(NCWSDL)
+	@echo Generating server stubs
+	rm -rf generated
+	mkdir -p generated
+	sh $(WSDL2C) -uri $(NCWSDL) -sd -ss -d adb -u -uw -f -o generated | grep -v 'the classpath'
+	@echo Adding marshalling calls to server stubs
+	../tools/add_marshalling.pl generated/axis2_skel_*.c
+	@echo Generating client stubs
+	sh $(WSDL2C) -uri $(NCWSDL) -g -d adb -u -uw -f -o generated | grep -v 'the classpath'
+	@echo Compiling the stubs
+	cd generated; patch -p1 < ../axis2_svc_generated.patch; $(CC) -c $(CFLAGS) $(INCLUDES) *.c
+	@echo "this is a cute little makefile marker" >generated/stubs
+	@echo Stubs generated.
+
+.c.o:
+	$(CC) -c $(CFLAGS) $(INCLUDES) $<
+
+server: $(SERVICE_SO)
+
+../storage/storage.o: ../storage/storage.c ../util/misc.o ../util/data.o
+	make -C ../storage
+
+../storage/walrus.o: ../storage/walrus.c ../util/misc.o ../util/data.o
+	make -C ../storage
+
+../net/vnetwork.o: ../net/vnetwork.c
+	make -C ../net
+
+../util/misc.o: ../util/misc.c ../util/misc.h ../util/eucalyptus.h
+	make -C ../util
+
+../util/data.o: ../util/data.c ../util/data.h ../util/eucalyptus.h
+	make -C ../util
+
+../util/euca_auth.o: ../util/euca_auth.c ../util/data.h ../util/eucalyptus.h
+	make -C ../util
+
+$(SERVICE_SO): generated/stubs ../storage/storage.o ../storage/walrus.o ../net/vnetwork.o ../util/misc.o ../util/data.o server-marshal.o handlers.o $(NC_HANDLERS) $(AXIS2C_HOME)/lib/libaxutil.so ../util/eucalyptus.h ../util/euca_auth.o
+	$(CC) -o $(SERVICE_SO) -shared $(NC_LIBS) generated/adb_*.o generated/axis2*_skel_*.o server-marshal.o handlers.o $(NC_HANDLERS) ../storage/*.o ../net/*.o ../util/*.o
+
+clientlib: generated/stubs ../util/data.o client-marshal-adb.o
+
+client: $(CLIENT) $(CLIENT)_local
+
+$(CLIENT): generated/stubs ../util/misc.o ../util/data.o client-marshal-adb.o client-marshal-local.o $(AXIS2C_HOME)/lib/libaxutil.so $(CLIENT).c
+	$(CC) -o $(CLIENT) $(CFLAGS) $(INCLUDES) $(NC_LIBS) generated/adb_*.o generated/axis2_stub_*.o client-marshal-adb.o ../util/*.o ../storage/*.o ../net/*.o $(CLIENT).c
+
+$(CLIENT)_local: generated/stubs ../util/misc.o ../util/data.o client-marshal-adb.o client-marshal-local.o handlers.o $(NC_HANDLERS) $(CLIENT).c ../util/euca_auth.o
+	$(CC) -o $(CLIENT)_local $(INCLUDES) $(CFLAGS) client-marshal-local.o ../util/*.o ../storage/*.o ../net/*.o handlers.o $(NC_HANDLERS) $(CLIENT).c $(NC_LIBS)
+
+test: test.c ../util/misc.o ../util/data.o
+	$(CC) $(CFLAGS) $(INCLUDES) $(NC_LIBS) -o test test.c ../util/misc.o ../util/data.o
+
+test_nc: test_nc.c ../util/misc.o
+	$(CC) $(CFLAGS) $(INCLUDES) $(NC_LIBS) -o test_nc test_nc.c ../util/misc.o
+
+deploy:
+	$(INSTALL) -d $(AXIS2C_SERVICES)/$(SERVICE_NAME)/
+	$(INSTALL) $(SERVICE_SO) $(AXIS2C_SERVICES)/$(SERVICE_NAME)/
+
+# no ws-sec
+	cat generated/services.xml | ../tools/add_wsdllocation.pl $(AXIS2C_SERVICES)/$(SERVICE_NAME)/$(NCWSDLNAME) > $(AXIS2C_SERVICES)/$(SERVICE_NAME)/services_noWS.xml
+# ws-sec
+	cat generated/services.xml | ../tools/add_wsdllocation.pl $(AXIS2C_SERVICES)/$(SERVICE_NAME)/$(NCWSDLNAME) | ../tools/add_service_policy.pl ../tools/service-policy-template.xml | sed "s:CLIENT-CERT:cluster-cert.pem:g" | sed "s:CLIENT-KEY:cluster-pk.pem:g" | sed "s:SERVER-CERT:node-cert.pem:g" | sed "s:SERVER-KEY:node-pk.pem:g" | sed "s:CLIENT-USERNAME:eucalyptus:g" > $(AXIS2C_SERVICES)/$(SERVICE_NAME)/services_WS.xml
+	cat ../tools/client-policy-template.xml | sed "s:EUCALYPTUS_HOME:$(EUCALYPTUS):g" | sed "s:AXIS2C_HOME:$(AXIS2C_HOME):g"  | sed "s:CLIENT-CERT:cluster-cert.pem:g" | sed "s:CLIENT-KEY:cluster-pk.pem:g" | sed "s:SERVER-CERT:node-cert.pem:g" | sed "s:SERVER-KEY:node-pk.pem:g" | sed "s:CLIENT-USERNAME:eucalyptus:g" > nc-client-policy.xml
+#	cp nc-client-policy.xml $(EUCALYPTUS)/var/lib/eucalyptus/keys/
+##	cp ../tools/*.pem $(EUCALYPTUS)/var/lib/eucalyptus/keys/
+#	chmod -R 0600 $(EUCALYPTUS)/var/lib/eucalyptus/keys/*
+# ws
+	$(INSTALL) $(AXIS2C_SERVICES)/$(SERVICE_NAME)/services_WS.xml $(AXIS2C_SERVICES)/$(SERVICE_NAME)/services.xml
+# no ws
+#	cp $(AXIS2C_SERVICES)/$(SERVICE_NAME)/services_noWS.xml $(AXIS2C_SERVICES)/$(SERVICE_NAME)/services.xml
+
+clean:
+	rm -rf $(SERVICE_SO) *.o $(CLIENT) $(CLIENT)_local *~* *#*
+
+distclean:
+	rm -rf generated $(SERVICE_SO) *.o $(CLIENT) $(CLIENT)_local *~* *#*
+
+install: deploy
+	$(INSTALL) nc-client-policy.xml $(vardir)/lib/eucalyptus/keys/
+	$(INSTALL) -m 0755 test_nc $(sbindir)/euca_test_nc
