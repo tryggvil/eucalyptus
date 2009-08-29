@@ -53,8 +53,8 @@
   ~   SOFTWARE, AND IF ANY SUCH MATERIAL IS DISCOVERED THE PARTY DISCOVERING
   ~   IT MAY INFORM DR. RICH WOLSKI AT THE UNIVERSITY OF CALIFORNIA, SANTA
   ~   BARBARA WHO WILL THEN ASCERTAIN THE MOST APPROPRIATE REMEDY, WHICH IN
-  ~   THE REGENTS’ DISCRETION MAY INCLUDE, WITHOUT LIMITATION, REPLACEMENT
-  ~   OF THE CODE SO IDENTIFIED, LICENSING OF THE CODE SO IDENTIFIED, OR
+  ~   THE REGENTS DISCRETION MAY INCLUDE, WITHOUT LIMITATION, REPLACEMENT
+  ~   OF THE CODE IDENTIFIED, LICENSING OF THE CODE SO IDENTIFIED, OR
   ~   WITHDRAWAL OF THE CODE CAPABILITY TO THE EXTENT NEEDED TO COMPLY WITH
   ~   ANY SUCH LICENSES OR RIGHTS.
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
@@ -221,7 +221,7 @@
         <axis2.module.version>1.41</axis2.module.version>
         <rampart.version>1.4</rampart.version>
         <wss4j.version>1.5.4</wss4j.version>
-        <drools.version>5.0.0.SNAPSHOT</drools.version>
+        <drools.version>5.0.1</drools.version>
         <ant.version>1.7.1</ant.version>
         <httpcore.version>4.0-beta3</httpcore.version>
         <gwt.version>1.5.3</gwt.version>
@@ -431,6 +431,10 @@
                 <version>${rampart.version}</version>
                 <exclusions>
                      <exclusion>
+                        <groupId>org.opensaml</groupId>
+                        <artifactId>opensaml</artifactId>
+                    </exclusion>
+                     <exclusion>
                         <groupId>opensaml</groupId>
                         <artifactId>opensaml</artifactId>
                     </exclusion>
@@ -601,10 +605,10 @@
             <dependency>
                 <groupId>org.apache.santuario</groupId>
                 <artifactId>xmlsec</artifactId>
-                <version>1.4.1</version>
+                <version>1.4.2</version>
             </dependency>
             <dependency>
-                <groupId>opensaml</groupId>
+                <groupId>org.opensaml</groupId>
                 <artifactId>opensaml</artifactId>
                 <version>1.1</version>
             </dependency>
@@ -722,8 +726,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>1.5</source>
-                    <target>1.5</target>
+                    <source>1.6</source>
+                    <target>1.6</target>
                 </configuration>
             </plugin>
 <!--            <plugin>

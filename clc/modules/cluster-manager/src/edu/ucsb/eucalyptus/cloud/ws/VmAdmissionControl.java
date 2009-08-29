@@ -3,6 +3,13 @@ package edu.ucsb.eucalyptus.cloud.ws;
  * Author: Chris Grzegorczyk grze@cs.ucsb.edu
  */
 
+import java.util.Date;
+import java.util.List;
+import java.util.NavigableSet;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.util.encoders.Base64;
+
 import edu.ucsb.eucalyptus.cloud.EucalyptusCloudException;
 import edu.ucsb.eucalyptus.cloud.FailScriptFailException;
 import edu.ucsb.eucalyptus.cloud.ResourceToken;
@@ -13,11 +20,7 @@ import edu.ucsb.eucalyptus.cloud.cluster.NotEnoughResourcesAvailable;
 import edu.ucsb.eucalyptus.cloud.entities.Counters;
 import edu.ucsb.eucalyptus.msgs.RunInstancesType;
 import edu.ucsb.eucalyptus.util.EucalyptusProperties;
-import org.apache.log4j.Logger;
-import org.bouncycastle.util.encoders.Base64;
-
-import java.util.List;
-import java.util.NavigableSet;
+import edu.ucsb.eucalyptus.util.UsageManagement;
 
 /*******************************************************************************
  * Copyright (c) 2009  Eucalyptus Systems, Inc.
@@ -142,6 +145,17 @@ public class VmAdmissionControl {
       throw new EucalyptusCloudException( "Not enough resources available: vm resources.");
     }
 
+    List<ResourceToken> tokens= vmAllocInfo.getAllocationTokens();
+    for (ResourceToken resourceToken : tokens) {
+    	String vmType = resourceToken.getVmType();
+    	String userName = resourceToken.getUserName();
+    	Date creationTime = resourceToken.getCreationTime();
+    	String imageId=resourceToken.getCorrelationId();
+		List<String> instanceIds = resourceToken.getInstanceIds();
+		for (String instanceId : instanceIds) {
+			UsageManagement.registerInstanceStartUsage(userName,instanceId,imageId, vmType,creationTime);
+		}
+    }
     return vmAllocInfo;
   }
 

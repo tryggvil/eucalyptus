@@ -1,0 +1,15 @@
+.DS_Store
+clc/modules/axis2-transport/build
+clc/modules/core/build
+clc/modules/axis2-transport/build
+clc/modules/crypto/build
+clc/modules/distribution/build
+clc/modules/group-manager/build
+clc/modules/image-manager/build
+clc/modules/interface/build
+clc/modules/key-manager/build
+clc/modules/msgs/build
+clc/modules/storage-controller/build
+clc/modules/storage-manager/build
+clc/modules/workarounds/build
+clc/modules/www/build

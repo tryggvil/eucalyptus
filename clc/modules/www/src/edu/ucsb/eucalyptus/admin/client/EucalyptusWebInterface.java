@@ -122,6 +122,7 @@ public class EucalyptusWebInterface implements EntryPoint {
     private static int currentTabIndex = 0;
 	private static int credsTabIndex;
     private static int imgTabIndex;
+    private static int usageTabIndex;
 	private static int usrTabIndex;
 	private static int confTabIndex;
     private static int downTabIndex;
@@ -1290,6 +1291,7 @@ public class EucalyptusWebInterface implements EntryPoint {
         allTabs = new TabBar();
         allTabs.addTab ("Credentials"); credsTabIndex = nTabs++;
         allTabs.addTab ("Images"); imgTabIndex = nTabs++;
+        allTabs.addTab ("Usage"); usageTabIndex = nTabs++;
         /////allTabs.addTab ("Instances"); instTabIndex = nTabs++;
         if (loggedInUser.isAdministrator().booleanValue()) {
 			allTabs.addTab ("Users"); usrTabIndex = nTabs++;
@@ -1308,6 +1310,7 @@ public class EucalyptusWebInterface implements EntryPoint {
                 currentTabIndex = tabIndex;
                 if (tabIndex==credsTabIndex) { displayCredentialsTab(wrapper); }
                 else if (tabIndex==imgTabIndex) { displayImagesTab(wrapper); }
+                else if (tabIndex==usageTabIndex) { displayUsageTab(wrapper); }
                 else if (tabIndex==usrTabIndex) { displayUsersTab(wrapper); }
 				else if (tabIndex==confTabIndex) { displayConfTab(wrapper); }
                 else if (tabIndex==downTabIndex) { displayDownloadsTab(wrapper); }
@@ -1927,6 +1930,28 @@ public class EucalyptusWebInterface implements EntryPoint {
         parent.add(msg);
     }
 
+    public void displayUsageTab (final VerticalPanel parent)
+    {
+        History.newItem("usage");
+        final HTML msg = new HTML ("Contacting the server...");
+        EucalyptusWebBackend.App.getInstance().getUsageInfo(
+                sessionId,
+                loggedInUser.getUserName(),
+                new AsyncCallback() {
+                    public void onSuccess (Object result)
+                    {
+                        List usageList = (List)result;
+                        displayUsageList (usageList, parent);
+                    }
+                    public void onFailure (Throwable caught)
+                    {
+                        displayErrorPage (caught.getMessage());
+                    }
+                });
+
+        parent.add(msg);
+    }
+    
     private class EucalyptusDialog extends DialogBox {
 
 		private boolean cancelled;
@@ -2199,6 +2224,65 @@ public class EucalyptusWebInterface implements EntryPoint {
         }
     }
 
+    public void displayUsageList(List usageList, final VerticalPanel parent)
+    {
+        parent.clear();
+        int nusage = usageList.size();
+        boolean showAllUsers = false;
+        boolean showCurrentUserUsage=true;
+        if (loggedInUser.isAdministrator().booleanValue()) {
+            showAllUsers = true;
+        }
+        
+        if(showAllUsers){
+	        if (nusage>0) {
+	            final Grid g = new Grid(nusage + 1, 6);
+	            g.setStyleName("euca-table");
+	            g.setCellPadding(6);
+	            g.setWidget(0, 0, new Label("User Name"));
+	            g.setWidget(0, 1, new Label("Comments"));
+	            g.setWidget(0, 2, new Label("Usage"));
+	            g.setWidget(0, 3, new Label("Total"));
+	            //g.setWidget(0, 4, new Label("Currency"));
+	            //if ( showActions )
+	            //    g.setWidget(0, 5, new Label("Actions"));
+	            g.getRowFormatter().setStyleName(0, "euca-table-heading-row");
+	
+	            for (int i=0; i<nusage; i++) {
+	                UsageCounterSummaryWeb summary = (UsageCounterSummaryWeb) usageList.get(i);
+	                int row = i+1;
+	                if ((row%2)==1) {
+	                    g.getRowFormatter().setStyleName(row, "euca-table-odd-row");
+	                } else {
+	                    g.getRowFormatter().setStyleName(row, "euca-table-even-row");
+	                }
+	                g.setWidget(row, 0, new Label (summary.getUserName()) );
+	                g.setWidget(row, 1, new Label (summary.getComments()) );
+	                g.setWidget(row, 2, new Label (summary.getUsage()) );
+	                g.setWidget(row, 3, new Label (summary.getTotalAmount()) );
+	                //g.setWidget(row, 4, new Label (summary.getCurrency()));
+	                /*if ( showActions ) {
+	                    HorizontalPanel ops = new HorizontalPanel();
+	                    ops.setSpacing (3);
+	                    HTML act_button = imageActionButton ("Disable", img);
+	                    if (img.getImageState().equalsIgnoreCase("deregistered")) {
+	                        act_button = imageActionButton ("Enable", img);
+	                    }
+	                    ops.add(act_button);
+	                    // TODO: uncomment when deletion is implemented
+	                    //HTML del_button = imageActionButton ("Delete", img);
+	                    //ops.add(del_button);
+	                    g.setWidget(row, 5, ops );
+	                }*/
+	            }
+	            parent.add(g);
+	        } else {
+	            parent.add(new Label("No usage statistics found"));
+	        }
+        }
+    }
+
+    
     public void displayConfTab (final VerticalPanel parent)
     {
 		History.newItem("conf");

@@ -759,4 +759,14 @@ public class EucalyptusWebBackendImpl extends OpenRemoteServiceServlet implement
         UserInfoWeb user = verifyUser(session, session.getUserId(), true);
         return getDownloadsFromUrl(downloadsUrl);
     }
+    
+    public List getUsageInfo (String sessionId, String userId)
+    throws SerializableException{
+	SessionInfo session = verifySession (sessionId);
+	UserInfoWeb user = verifyUser (session, session.getUserId(), true);
+	
+	/* TODO: right now userId parameter is ignored since we only have public images */
+	return EucalyptusManagement.getWebUsageSummary(userId);
+	}
+
 }

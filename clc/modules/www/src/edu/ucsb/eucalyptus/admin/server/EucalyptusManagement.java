@@ -182,7 +182,43 @@ public class EucalyptusManagement {
         return target;
     }
 
-    public static String getError( String message )
+    public static UsageCounterWeb usageConvertToWeb ( UsageCounter source)
+    {
+    	UsageCounterWeb target = new UsageCounterWeb();
+
+        target.setId(source.getId());
+        target.setAmount(source.getAmount());
+        target.setEndTime(source.getEndTime());
+        target.setUsageInstanceKey(source.getUsageInstanceKey());
+        target.setUsageType(usageTypeConvertToWeb(source.getUsageType()));
+        target.setUser(fromServer(source.getUser()));
+        target.setStartTime(source.getStartTime());
+        return target;
+    }    
+    
+    /**
+	 * <p>
+	 * TODO tryggvil describe method usageTypeConvertToWeb
+	 * </p>
+	 * @param usageType
+	 * @return
+	 */
+	public static UsageTypeWeb usageTypeConvertToWeb(UsageType source) {
+		UsageTypeWeb target = new UsageTypeWeb();
+		target.setId(source.getId());
+        target.setCurrency(source.getCurrency());
+        target.setDescription(source.getDescription());
+        target.setOperationName(source.getOperationName());
+        target.setUnitName(source.getUnitName());
+        target.setUsageType(source.getUsageType());
+        target.setUsageSubType(source.getUsageSubType());
+        target.setUnitPrice(source.getUnitPrice());
+        target.setServiceName(target.getServiceName());
+
+        return target;
+	}
+
+	public static String getError( String message )
     {
         return "<html><title>HTTP/1.0 403 Forbidden</title><body><div align=\"center\"><p><h1>403: Forbidden</h1></p><p><img src=\"img/error-1.jpg\" /></p><p><h3 style=\"font-color: red;\">" + message + "</h3></p></div></body></html>";
     }
@@ -232,7 +268,76 @@ public class EucalyptusManagement {
         return imagesList;
     }
 
-    public static UserInfoWeb getWebUser( String userName ) throws SerializableException
+    public static List<UsageCounterSummaryWeb> getWebUsageSummary (String pattern) throws SerializableException
+    {
+        List<UsageCounterSummaryWeb> summaryList = new ArrayList<UsageCounterSummaryWeb>();
+
+    	
+        UsageCounter searchCounter = new UsageCounter(); /* empty => return all */
+        EntityWrapper<UsageCounter> db = new EntityWrapper<UsageCounter>();
+        List<UsageCounter> results= db.query( searchCounter );
+        List<UsageCounterWeb> usageCounterList = new ArrayList<UsageCounterWeb>();
+        for ( UsageCounter i : results )
+        	usageCounterList.add(usageConvertToWeb(i));
+        db.commit();
+        
+        List<UserInfoWeb> users = getDistinctUsers(usageCounterList);
+        for (UserInfoWeb userInfoWeb : users) {
+            List<UsageCounterWeb> countersForUser = getCountersForUser(usageCounterList,userInfoWeb);
+        	UsageCounterSummaryWeb summary = new UsageCounterSummaryWeb(userInfoWeb,countersForUser);
+        	summaryList.add(summary);
+		}
+        
+        return summaryList;
+    }
+    
+    
+    /**
+	 * <p>
+	 * TODO tryggvil describe method getCountersForUser
+	 * </p>
+	 * @param usageCounterList
+	 * @param userInfoWeb
+	 * @return
+	 */
+	private static List<UsageCounterWeb> getCountersForUser(
+			List<UsageCounterWeb> usageCounterList, UserInfoWeb userInfoWeb) {
+		List<UsageCounterWeb> counters = new ArrayList<UsageCounterWeb>();
+		String userName = userInfoWeb.getUserName();
+		for (UsageCounterWeb myUsageCounter : usageCounterList) {
+			UserInfoWeb myUser = myUsageCounter.getUser();
+			String myUserName = myUser.getUserName();
+			if(userName.equals(myUserName)){
+				counters.add(myUsageCounter);
+			}
+		}
+		return counters;
+	}
+
+	/**
+	 * <p>
+	 * Gets distinct users registered with usage
+	 * </p>
+	 * @param usageCounterList
+	 * @return
+	 */
+	private static List<UserInfoWeb> getDistinctUsers(
+			List<UsageCounterWeb> usageCounterList) {
+		 List<UserInfoWeb> userslist = new ArrayList<UserInfoWeb>();
+		 List<String> usernameslist = new ArrayList<String>();
+
+		 for (UsageCounterWeb counter : usageCounterList) {
+			 UserInfoWeb user = counter.getUser();
+			 String username = user.getUserName();
+			 if(!usernameslist.contains(username)){
+				 userslist.add(user);
+				 usernameslist.add(username);
+			 }
+		 }
+		 return userslist;
+	}
+
+	public static UserInfoWeb getWebUser( String userName ) throws SerializableException
     {
         EntityWrapper<UserInfo> dbWrapper = new EntityWrapper<UserInfo>();
         List<UserInfo> userList = dbWrapper.query( new UserInfo( userName ) );
@@ -663,4 +768,32 @@ public class EucalyptusManagement {
         return cloudInfo;
     }
 
+    
+    public static SystemConfigWeb getUsage() throws SerializableException
+    {
+        EntityWrapper<SystemConfiguration> db = new EntityWrapper<SystemConfiguration>();
+        SystemConfiguration sysConf;
+        try
+        {
+            sysConf = db.getUnique( new SystemConfiguration() );
+            validateSystemConfiguration(sysConf);
+        } catch(EucalyptusCloudException e) {
+            sysConf = validateSystemConfiguration(null);
+        }
+        finally {
+            db.commit();
+        }
+        return new SystemConfigWeb( sysConf.getStorageUrl(), sysConf.getStorageDir(),
+                sysConf.getStorageMaxBucketsPerUser(),
+                sysConf.getStorageMaxBucketSizeInMB(),
+                sysConf.getStorageMaxCacheSizeInMB(),
+                sysConf.getStorageMaxTotalSnapshotSizeInGb(),
+                sysConf.getStorageMaxTotalVolumeSizeInGb(),
+                sysConf.getStorageMaxVolumeSizeInGB(),
+                sysConf.getStorageVolumesDir(),
+                sysConf.getDefaultKernel(), sysConf.getDefaultRamdisk(),
+                sysConf.getMaxUserPublicAddresses(), sysConf.isDoDynamicPublicAddresses(), sysConf.getSystemReservedPublicAddresses() );
+    }
+
+    
 }

@@ -138,7 +138,7 @@
             <artifactId>xmlsec</artifactId>
         </dependency>
         <dependency>
-            <groupId>opensaml</groupId>
+            <groupId>org.opensaml</groupId>
             <artifactId>opensaml</artifactId>
         </dependency>
     </dependencies>

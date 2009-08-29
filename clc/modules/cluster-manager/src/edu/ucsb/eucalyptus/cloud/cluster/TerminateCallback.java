@@ -3,8 +3,13 @@ package edu.ucsb.eucalyptus.cloud.cluster;
  * Author: Chris Grzegorczyk grze@cs.ucsb.edu
  */
 
+import java.util.ArrayList;
+import java.util.Date;
+
 import edu.ucsb.eucalyptus.msgs.*;
 import edu.ucsb.eucalyptus.transport.client.Client;
+import edu.ucsb.eucalyptus.util.UsageManagement;
+
 import org.apache.log4j.Logger;
 
 /*******************************************************************************
@@ -76,7 +81,14 @@ public class TerminateCallback extends QueuedEventCallback<TerminateInstancesTyp
   }
 
   public void process( final Client cluster, final TerminateInstancesType msg ) throws Exception {
-    cluster.send( msg );
+	ArrayList<String> instances = msg.getInstancesSet();
+    for (String instance : instances) {
+    	Date stop = new Date();
+    	String instanceId=instance;
+    	String userName=msg.getUserId();
+    	UsageManagement.registerInstanceStopUsage(userName, instanceId, stop);
+    	cluster.send( msg );
+	}
   }
 
 }

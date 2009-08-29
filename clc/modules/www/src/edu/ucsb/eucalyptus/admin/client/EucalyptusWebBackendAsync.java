@@ -138,4 +138,8 @@ public interface EucalyptusWebBackendAsync {
 
     void getDownloads(String sessionId, String downloadsUrl, final AsyncCallback<List<DownloadsWeb>> async)
             ;
+
+    void getUsageInfo(String sessionId, String userId, final AsyncCallback<List<UsageCounterSummaryWeb>> async)
+    		;
+
 }
