@@ -7,9 +7,6 @@ package edu.ucsb.eucalyptus.admin.client;
 
 import java.util.Date;
 
-import edu.ucsb.eucalyptus.cloud.entities.UsageType;
-import edu.ucsb.eucalyptus.cloud.entities.UserInfo;
-
 /**
  * <p>
  * TODO tryggvil Describe Type UsageCounterWeb
