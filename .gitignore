@@ -13,3 +13,4 @@ clc/modules/storage-controller/build
 clc/modules/storage-manager/build
 clc/modules/workarounds/build
 clc/modules/www/build
+clc/target
