@@ -98,8 +98,8 @@ public class UsageManagement {
 			UsageCounter counter = findCounterBy(userName,instanceId);
 			
 			Date start = counter.getStartTime();
-			//double hoursConsumed = countHoursBetween(start,stop);			
-			//counter.setAmount(hoursConsumed);
+			double hoursConsumed = countHoursBetween(start,stop);			
+			counter.setAmount(hoursConsumed);
 			db.merge(counter);
 			db.commit();
 		} catch (Exception e) {
