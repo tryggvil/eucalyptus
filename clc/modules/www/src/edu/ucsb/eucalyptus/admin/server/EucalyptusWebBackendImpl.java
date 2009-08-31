@@ -760,7 +760,7 @@ public class EucalyptusWebBackendImpl extends OpenRemoteServiceServlet implement
         return getDownloadsFromUrl(downloadsUrl);
     }
     
-    public List getUsageInfo (String sessionId, String userId)
+    public List<UsageCounterSummaryWeb> getUsageInfo (String sessionId, String userId)
     throws SerializableException{
 	SessionInfo session = verifySession (sessionId);
 	UserInfoWeb user = verifyUser (session, session.getUserId(), true);

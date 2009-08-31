@@ -5,6 +5,7 @@
 package edu.ucsb.eucalyptus.admin.client;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.SerializableException;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
@@ -135,6 +136,7 @@ public interface EucalyptusWebBackend extends RemoteService {
 
   public List<DownloadsWeb> getDownloads ( String sessionId, String downloadsUrl ) throws SerializableException;
 
+  public List<UsageCounterSummaryWeb> getUsageInfo(String sessionId, String userId) throws SerializableException;
 
   /**
    * Utility/Convenience class.
