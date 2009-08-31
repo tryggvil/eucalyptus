@@ -4,20 +4,46 @@
 
 package edu.ucsb.eucalyptus.admin.server;
 
-import com.google.gwt.user.client.rpc.SerializableException;
-import edu.ucsb.eucalyptus.admin.client.*;
-import edu.ucsb.eucalyptus.cloud.*;
-import edu.ucsb.eucalyptus.cloud.entities.*;
-import edu.ucsb.eucalyptus.util.*;
+import java.io.IOException;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.log4j.Logger;
 
-import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.methods.GetMethod;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import com.google.gwt.user.client.rpc.SerializableException;
+
+import edu.ucsb.eucalyptus.admin.client.CloudInfoWeb;
+import edu.ucsb.eucalyptus.admin.client.ImageInfoWeb;
+import edu.ucsb.eucalyptus.admin.client.SystemConfigWeb;
+import edu.ucsb.eucalyptus.admin.client.UsageCounterSummaryWeb;
+import edu.ucsb.eucalyptus.admin.client.UsageCounterWeb;
+import edu.ucsb.eucalyptus.admin.client.UsageTypeWeb;
+import edu.ucsb.eucalyptus.admin.client.UserInfoWeb;
+import edu.ucsb.eucalyptus.cloud.Configuration;
+import edu.ucsb.eucalyptus.cloud.EucalyptusCloudException;
+import edu.ucsb.eucalyptus.cloud.entities.CertificateInfo;
+import edu.ucsb.eucalyptus.cloud.entities.EntityWrapper;
+import edu.ucsb.eucalyptus.cloud.entities.ImageInfo;
+import edu.ucsb.eucalyptus.cloud.entities.NetworkRulesGroup;
+import edu.ucsb.eucalyptus.cloud.entities.SystemConfiguration;
+import edu.ucsb.eucalyptus.cloud.entities.UsageCounter;
+import edu.ucsb.eucalyptus.cloud.entities.UsageCounterSummary;
+import edu.ucsb.eucalyptus.cloud.entities.UsageType;
+import edu.ucsb.eucalyptus.cloud.entities.UserInfo;
+import edu.ucsb.eucalyptus.util.EucalyptusProperties;
+import edu.ucsb.eucalyptus.util.StorageProperties;
+import edu.ucsb.eucalyptus.util.UserManagement;
+import edu.ucsb.eucalyptus.util.WalrusProperties;
 
 /*******************************************************************************
  * Copyright (c) 2009  Eucalyptus Systems, Inc.
@@ -182,6 +208,8 @@ public class EucalyptusManagement {
         return target;
     }
 
+    
+    
     public static UsageCounterWeb usageConvertToWeb ( UsageCounter source)
     {
     	UsageCounterWeb target = new UsageCounterWeb();
@@ -194,7 +222,16 @@ public class EucalyptusManagement {
         target.setUser(fromServer(source.getUser()));
         target.setStartTime(source.getStartTime());
         return target;
-    }    
+    }
+    
+    public static List<UsageCounterWeb> usageCounterListConvertToWeb ( List<UsageCounter> source){
+    	ArrayList<UsageCounterWeb> target = new ArrayList<UsageCounterWeb>();
+    	for (UsageCounter usageCounter : source) {
+    		UsageCounterWeb web = usageConvertToWeb(usageCounter);
+    		target.add(web);
+		}
+    	return target;
+    }
     
     /**
 	 * <p>
@@ -275,16 +312,18 @@ public class EucalyptusManagement {
     	
         UsageCounter searchCounter = new UsageCounter(); /* empty => return all */
         EntityWrapper<UsageCounter> db = new EntityWrapper<UsageCounter>();
-        List<UsageCounter> results= db.query( searchCounter );
-        List<UsageCounterWeb> usageCounterList = new ArrayList<UsageCounterWeb>();
-        for ( UsageCounter i : results )
-        	usageCounterList.add(usageConvertToWeb(i));
+        List<UsageCounter> usageCounterList= db.query( searchCounter );
+        List<UsageCounterWeb> usageCounterWebList = new ArrayList<UsageCounterWeb>();
+        for ( UsageCounter i : usageCounterList )
+        	usageCounterWebList.add(usageConvertToWeb(i));
         db.commit();
         
-        List<UserInfoWeb> users = getDistinctUsers(usageCounterList);
-        for (UserInfoWeb userInfoWeb : users) {
-            List<UsageCounterWeb> countersForUser = getCountersForUser(usageCounterList,userInfoWeb);
-        	UsageCounterSummaryWeb summary = new UsageCounterSummaryWeb(userInfoWeb,countersForUser);
+        List<UserInfo> users = getDistinctUsers(usageCounterList);
+        for (UserInfo user : users) {
+            List<UsageCounter> countersForUser = getCountersForUser(usageCounterList,user);
+            UsageCounterSummary sum = new UsageCounterSummary(user,countersForUser);
+        	//UsageCounterSummaryWeb summary = new UsageCounterSummaryWeb(userInfoWeb,countersForUser);
+            UsageCounterSummaryWeb summary = usageCounterSummaryConvertToWeb(sum);
         	summaryList.add(summary);
 		}
         
@@ -294,18 +333,49 @@ public class EucalyptusManagement {
     
     /**
 	 * <p>
+	 * TODO tryggvil describe method usageCounterSummaryConvertToWeb
+	 * </p>
+	 * @param sum
+	 * @return
+	 */
+	private static UsageCounterSummaryWeb usageCounterSummaryConvertToWeb(
+			UsageCounterSummary source) {
+		
+		UsageCounterSummaryWeb target = new UsageCounterSummaryWeb();
+		
+		List<UsageCounter> counters = source.getUsageCounters();
+		List<UsageCounterWeb> countersWeb = usageCounterListConvertToWeb(counters);
+		UserInfo user = source.getUser();
+		
+        target.setCurrency(source.getCurrency());
+        target.setComments(source.getComments());
+        target.setAmount(source.getAmount());
+        target.setUsage(source.getUsage());
+        target.setUsageCounters(countersWeb);
+        try {
+			target.setUser(getWebUser(user.getUserName()));
+		} catch (SerializableException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
+        return target;
+	}
+
+	/**
+	 * <p>
 	 * TODO tryggvil describe method getCountersForUser
 	 * </p>
 	 * @param usageCounterList
 	 * @param userInfoWeb
 	 * @return
 	 */
-	private static List<UsageCounterWeb> getCountersForUser(
-			List<UsageCounterWeb> usageCounterList, UserInfoWeb userInfoWeb) {
-		List<UsageCounterWeb> counters = new ArrayList<UsageCounterWeb>();
+	private static List<UsageCounter> getCountersForUser(
+			List<UsageCounter> usageCounterList, UserInfo userInfoWeb) {
+		List<UsageCounter> counters = new ArrayList<UsageCounter>();
 		String userName = userInfoWeb.getUserName();
-		for (UsageCounterWeb myUsageCounter : usageCounterList) {
-			UserInfoWeb myUser = myUsageCounter.getUser();
+		for (UsageCounter myUsageCounter : usageCounterList) {
+			UserInfo myUser = myUsageCounter.getUser();
 			String myUserName = myUser.getUserName();
 			if(userName.equals(myUserName)){
 				counters.add(myUsageCounter);
@@ -321,13 +391,13 @@ public class EucalyptusManagement {
 	 * @param usageCounterList
 	 * @return
 	 */
-	private static List<UserInfoWeb> getDistinctUsers(
-			List<UsageCounterWeb> usageCounterList) {
-		 List<UserInfoWeb> userslist = new ArrayList<UserInfoWeb>();
+	private static List<UserInfo> getDistinctUsers(
+			List<UsageCounter> usageCounterList) {
+		 List<UserInfo> userslist = new ArrayList<UserInfo>();
 		 List<String> usernameslist = new ArrayList<String>();
 
-		 for (UsageCounterWeb counter : usageCounterList) {
-			 UserInfoWeb user = counter.getUser();
+		 for (UsageCounter counter : usageCounterList) {
+			 UserInfo user = counter.getUser();
 			 String username = user.getUserName();
 			 if(!usernameslist.contains(username)){
 				 userslist.add(user);
