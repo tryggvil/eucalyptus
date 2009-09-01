@@ -145,7 +145,7 @@ public class VmAdmissionControl {
       throw new EucalyptusCloudException( "Not enough resources available: vm resources.");
     }
 
-    List<ResourceToken> tokens= vmAllocInfo.getAllocationTokens();
+    /*List<ResourceToken> tokens= vmAllocInfo.getAllocationTokens();
     for (ResourceToken resourceToken : tokens) {
     	String vmType = resourceToken.getVmType();
     	String userName = resourceToken.getUserName();
@@ -155,7 +155,7 @@ public class VmAdmissionControl {
 		for (String instanceId : instanceIds) {
 			UsageManagement.registerInstanceStartUsage(userName,instanceId,imageId, vmType,creationTime);
 		}
-    }
+    }*/
     return vmAllocInfo;
   }
 

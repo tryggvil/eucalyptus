@@ -3,6 +3,9 @@ package edu.ucsb.eucalyptus.cloud.cluster;
  * Author: Chris Grzegorczyk grze@cs.ucsb.edu
  */
 
+import java.util.Date;
+import java.util.List;
+
 import com.google.common.collect.Lists;
 import edu.ucsb.eucalyptus.cloud.ResourceToken;
 import edu.ucsb.eucalyptus.cloud.VmInfo;
@@ -11,6 +14,8 @@ import edu.ucsb.eucalyptus.cloud.VmRunType;
 import edu.ucsb.eucalyptus.msgs.TerminateInstancesType;
 import edu.ucsb.eucalyptus.transport.client.Client;
 import edu.ucsb.eucalyptus.util.EucalyptusProperties;
+import edu.ucsb.eucalyptus.util.UsageManagement;
+
 import org.apache.axis2.AxisFault;
 import org.apache.log4j.Logger;
 
@@ -111,6 +116,17 @@ class VmRunCallback extends QueuedEventCallback<VmRunType> {
           if( VmInstance.DEFAULT_IP.equals( vm.getNetworkConfig().getIgnoredPublicIp() ) )
             vm.getNetworkConfig().setIgnoredPublicIp( vmInfo.getNetParams().getIgnoredPublicIp() );
         }
+        
+        for ( VmInfo vmInfo : reply.getVms() ) {
+            VmInstance vm = VmInstances.getInstance().lookup( vmInfo.getInstanceId() );
+            String instanceId = vm.getInstanceId();
+        	String vmType = vm.getVmTypeInfo().getName();
+        	String userName = vm.getOwnerId();
+        	Date creationTime = vm.getLaunchTime();
+        	String imageId=vm.getImageInfo().getImageId();
+    		UsageManagement.registerInstanceStartUsage(userName,instanceId,imageId, vmType,creationTime);
+        }
+        
       } else {
         this.parent.getRollback().lazySet( true );
       }

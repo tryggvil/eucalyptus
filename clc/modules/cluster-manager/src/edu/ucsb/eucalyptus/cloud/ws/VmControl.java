@@ -4,10 +4,22 @@
 
 package edu.ucsb.eucalyptus.cloud.ws;
 
-import edu.ucsb.eucalyptus.cloud.*;
-import edu.ucsb.eucalyptus.msgs.*;
+import java.util.Date;
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.mule.RequestContext;
+
+import edu.ucsb.eucalyptus.cloud.EucalyptusCloudException;
+import edu.ucsb.eucalyptus.cloud.VmAllocationInfo;
+import edu.ucsb.eucalyptus.msgs.DescribeInstancesResponseType;
+import edu.ucsb.eucalyptus.msgs.DescribeInstancesType;
+import edu.ucsb.eucalyptus.msgs.GetConsoleOutputType;
+import edu.ucsb.eucalyptus.msgs.RebootInstancesResponseType;
+import edu.ucsb.eucalyptus.msgs.RebootInstancesType;
+import edu.ucsb.eucalyptus.msgs.TerminateInstancesResponseType;
+import edu.ucsb.eucalyptus.msgs.TerminateInstancesType;
+import edu.ucsb.eucalyptus.util.UsageManagement;
 
 /*******************************************************************************
  * Copyright (c) 2009  Eucalyptus Systems, Inc.
@@ -94,7 +106,17 @@ public class VmControl {
   public TerminateInstancesResponseType TerminateInstances( TerminateInstancesType msg ) throws EucalyptusCloudException {
     TerminateInstancesResponseType reply = ( TerminateInstancesResponseType ) msg.getReply();
     try {
-      return SystemState.handle( msg );
+    	TerminateInstancesResponseType response =  SystemState.handle( msg );
+    	
+    	String userId = msg.getEffectiveUserId();
+    	List<String> instances = msg.getInstancesSet();
+        for (String instance : instances) {
+        	Date stop = new Date();
+        	String instanceId=instance;
+        	String userName=msg.getUserId();
+        	UsageManagement.registerInstanceStopUsage(userName, instanceId, stop);
+    	}
+    	return response;
     }
     catch ( Exception e ) {
       LOG.error( e );

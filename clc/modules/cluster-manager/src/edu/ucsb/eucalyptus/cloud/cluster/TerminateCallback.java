@@ -86,9 +86,9 @@ public class TerminateCallback extends QueuedEventCallback<TerminateInstancesTyp
     	Date stop = new Date();
     	String instanceId=instance;
     	String userName=msg.getUserId();
-    	UsageManagement.registerInstanceStopUsage(userName, instanceId, stop);
+    	//UsageManagement.registerInstanceStopUsage(userName, instanceId, stop);
     	cluster.send( msg );
-	}
+	}	
   }
 
 }
