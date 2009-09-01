@@ -13,8 +13,6 @@ import java.util.GregorianCalendar;
 
 import org.apache.log4j.Logger;
 
-import com.sun.tools.internal.xjc.reader.xmlschema.bindinfo.BIConversion.User;
-
 import edu.ucsb.eucalyptus.cloud.EucalyptusCloudException;
 import edu.ucsb.eucalyptus.cloud.entities.EntityWrapper;
 import edu.ucsb.eucalyptus.cloud.entities.UsageCounter;
