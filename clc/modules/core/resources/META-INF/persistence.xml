@@ -97,6 +97,10 @@
         <class>edu.ucsb.eucalyptus.cloud.entities.Address</class>
         <class>edu.ucsb.eucalyptus.cloud.entities.UserGroupInfo</class>
         <class>edu.ucsb.eucalyptus.cloud.entities.ProductCode</class>
+        <class>edu.ucsb.eucalyptus.cloud.entities.UsageType</class>
+        <class>edu.ucsb.eucalyptus.cloud.entities.UsageCounter</class>
+        <class>edu.ucsb.eucalyptus.cloud.entities.PaymentSetting</class>
+		<class>edu.ucsb.eucalyptus.cloud.entities.PaymentInfo</class>
         <properties>
             <property name="hibernate.connection.provider_class" value="org.hibernate.connection.C3P0ConnectionProvider"/>
             <property name="hibernate.cache.provider_class" value="org.hibernate.cache.EhCacheProvider"/>
