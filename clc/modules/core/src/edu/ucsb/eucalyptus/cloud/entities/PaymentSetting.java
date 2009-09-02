@@ -36,6 +36,9 @@ public class PaymentSetting {
 	@Column( name = "setting_value" )
 	private String settingValue;
 	
+	public PaymentSetting(){
+	}
+	
 	public PaymentSetting(String key){
 		this.setSettingKey(key);
 	}

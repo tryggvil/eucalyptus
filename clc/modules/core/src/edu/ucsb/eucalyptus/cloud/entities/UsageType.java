@@ -62,7 +62,7 @@ public class UsageType {
 	@Id
 	@GeneratedValue
 	@Column( name = "usage_type_id" )
-	private String id;
+	private Long id = -1l;
 	
 	/* e.g. Eucalyptus */
 	@Column( name = "service_name" )
@@ -89,7 +89,11 @@ public class UsageType {
 
 	private String currency;
 	
-	
+	  /**
+	 * @param name
+	 */
+	public UsageType() {
+	}
 	  /**
 	 * @param name
 	 */
@@ -215,14 +219,14 @@ public class UsageType {
 	/**
 	 * @return Returns the id.
 	 */
-	public String getId() {
+	public long getId() {
 		return id;
 	}
 
 	/**
 	 * @param id The id to set.
 	 */
-	public void setId(String id) {
+	public void setId(long id) {
 		this.id = id;
 	}
 

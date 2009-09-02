@@ -89,6 +89,8 @@ public class UsageCounter {
 	@Column( name = "amount" )
 	private double amount;
 
+	public UsageCounter(){
+	}
 	
 	public static UsageCounter findBy( UserInfo user, String instanceId) throws EucalyptusCloudException {
 		EntityWrapper<UsageCounter> db = new EntityWrapper<UsageCounter>();

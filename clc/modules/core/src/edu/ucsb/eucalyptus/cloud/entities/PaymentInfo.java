@@ -53,4 +53,105 @@ public class PaymentInfo {
 	@Column( name = "payment_method_checknumber" )
 	private String paymentMethodCheckNumber;
 	
+	public PaymentInfo(){
+	}
+
+	/**
+	 * @return Returns the id.
+	 */
+	public Long getId() {
+		return id;
+	}
+
+	/**
+	 * @param id The id to set.
+	 */
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	/**
+	 * @return Returns the user.
+	 */
+	public UserInfo getUser() {
+		return user;
+	}
+
+	/**
+	 * @param user The user to set.
+	 */
+	public void setUser(UserInfo user) {
+		this.user = user;
+	}
+
+	/**
+	 * @return Returns the payerName.
+	 */
+	public String getPayerName() {
+		return payerName;
+	}
+
+	/**
+	 * @param payerName The payerName to set.
+	 */
+	public void setPayerName(String payerName) {
+		this.payerName = payerName;
+	}
+
+	/**
+	 * @return Returns the paymentMethod.
+	 */
+	public String getPaymentMethod() {
+		return paymentMethod;
+	}
+
+	/**
+	 * @param paymentMethod The paymentMethod to set.
+	 */
+	public void setPaymentMethod(String paymentMethod) {
+		this.paymentMethod = paymentMethod;
+	}
+
+	/**
+	 * @return Returns the paymentMethodNumber.
+	 */
+	public String getPaymentMethodNumber() {
+		return paymentMethodNumber;
+	}
+
+	/**
+	 * @param paymentMethodNumber The paymentMethodNumber to set.
+	 */
+	public void setPaymentMethodNumber(String paymentMethodNumber) {
+		this.paymentMethodNumber = paymentMethodNumber;
+	}
+
+	/**
+	 * @return Returns the paymentMethodExpires.
+	 */
+	public String getPaymentMethodExpires() {
+		return paymentMethodExpires;
+	}
+
+	/**
+	 * @param paymentMethodExpires The paymentMethodExpires to set.
+	 */
+	public void setPaymentMethodExpires(String paymentMethodExpires) {
+		this.paymentMethodExpires = paymentMethodExpires;
+	}
+
+	/**
+	 * @return Returns the paymentMethodCheckNumber.
+	 */
+	public String getPaymentMethodCheckNumber() {
+		return paymentMethodCheckNumber;
+	}
+
+	/**
+	 * @param paymentMethodCheckNumber The paymentMethodCheckNumber to set.
+	 */
+	public void setPaymentMethodCheckNumber(String paymentMethodCheckNumber) {
+		this.paymentMethodCheckNumber = paymentMethodCheckNumber;
+	}
+	
 }
