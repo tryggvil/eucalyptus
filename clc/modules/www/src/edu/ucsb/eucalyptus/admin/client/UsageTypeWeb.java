@@ -17,7 +17,7 @@ import javax.persistence.Id;
  */
 public class UsageTypeWeb {
 
-	private String id;
+	private Long id=-1l;
 	private String serviceName;
 	private String operationName;
 	private String usageType;
@@ -28,13 +28,13 @@ public class UsageTypeWeb {
 	/**
 	 * @return Returns the id.
 	 */
-	public String getId() {
+	public long getId() {
 		return id;
 	}
 	/**
 	 * @param id The id to set.
 	 */
-	public void setId(String id) {
+	public void setId(long id) {
 		this.id = id;
 	}
 	/**
