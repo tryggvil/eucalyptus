@@ -7,6 +7,7 @@ package edu.ucsb.eucalyptus.cloud.entities;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -59,6 +60,7 @@ public class UsageType {
 	public static String USAGE_TYPE_BOX_USAGE="BoxUsage";
 	
 	@Id
+	@GeneratedValue
 	@Column( name = "usage_type_id" )
 	private String id;
 	

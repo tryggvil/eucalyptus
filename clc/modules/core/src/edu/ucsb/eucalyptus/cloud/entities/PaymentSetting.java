@@ -31,7 +31,6 @@ public class PaymentSetting {
 	public static final String KEY_DEFAULT_CURRENCY="defaultCurrency";
 	
 	@Id
-	@GeneratedValue
 	@Column( name = "setting_key" )
 	private String settingKey;
 	@Column( name = "setting_value" )
