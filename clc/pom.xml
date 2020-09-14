@@ -222,7 +222,7 @@
         <rampart.version>1.4</rampart.version>
         <wss4j.version>1.5.4</wss4j.version>
         <drools.version>5.0.1</drools.version>
-        <ant.version>1.7.1</ant.version>
+        <ant.version>1.9.15</ant.version>
         <httpcore.version>4.0-beta3</httpcore.version>
         <gwt.version>1.5.3</gwt.version>
         <!--deprecated-->
