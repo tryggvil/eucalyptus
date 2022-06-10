@@ -215,7 +215,7 @@
         <google.collections.version>snapshot-20080530</google.collections.version>
         <mule.version>2.0.1</mule.version>
         <bouncycastle.version>136</bouncycastle.version>
-        <jetty.version>6.1.14</jetty.version>
+        <jetty.version>6.1.23</jetty.version>
         <axis2.version>1.4.1</axis2.version>
         <axiom.version>1.2.8</axiom.version>
         <axis2.module.version>1.41</axis2.module.version>
