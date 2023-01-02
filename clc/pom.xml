@@ -206,7 +206,7 @@
         <jibx.version>1.1.6a</jibx.version>
         <groovy.version>1.5.7</groovy.version>
         <hsqldb.version>1.8.0.7</hsqldb.version>
-        <jettison.version>1.0-RC2</jettison.version>
+        <jettison.version>1.5.2</jettison.version>
         <hibernate.core.version>3.3.1.GA</hibernate.core.version>
         <hibernate.em.version>3.4.0.GA</hibernate.em.version>
         <hibernate.annotations.version>3.4.0.GA</hibernate.annotations.version>
